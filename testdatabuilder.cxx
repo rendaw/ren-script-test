@@ -1,17 +1,18 @@
 #include <cassert>
 #include <iostream>
 
-#include <ren-script/databuilder.h>
+#include "ren-script/databuilder.h"
 
 void AssertEqual(String const &Got, String const &Expected)
 {
-	StringStream GotStream(Got), ExpectedStream(Expected);
+	std::cout << "Got is: [[[[" << Got << "]]]]\nExpected is : [[[[" << Expected << "]]]]" << std::endl;
+	MemoryStream GotStream(Got), ExpectedStream(Expected);
 	String GotLine, ExpectedLine;
-	while (1)
+	while (GotStream || ExpectedStream)
 	{
-		if ((bool)getline(GotStream, GotLine) != (bool)getline(ExpectedStream, ExpectedLine))
-			assert(false);
-		if (!GotStream) break;
+		assert(GotStream && ExpectedStream);
+		GotStream >> GotLine;
+		ExpectedStream >> ExpectedLine;
 		std::cout << "Testing:\n\t" << GotLine << "\n\t" << ExpectedLine << std::endl;
 		assert(GotLine == ExpectedLine);
 	}
@@ -22,7 +23,7 @@ int main(int argc, char **argv)
 	AssertEqual(ScriptDataBuilder::Escape("(\"n_ '!%"), "(\\\"n_ '!%");
 	String const Unicode1(u8"\xE5\xAD\x90\xE4\xBE\x9B"), Unicode2(u8"\xE5\xA4\xA7\x20\xE4\xBA\xBA"), Unicode3(u8"\xE3\x83\x95\xE3\x82\xA6\xE3\x83\x81\xE3\x83\xA7\xE3\x82\xA6\xE7\xA7\x91");
 
-	StringStream Output;
+	MemoryStream Output;
 	Output << "x = function() return {\n";
 	ScriptDataBuilder Builder(Output, 1);
 	Builder.Key("a").Value(String("a"));
@@ -44,7 +45,7 @@ int main(int argc, char **argv)
 	Builder.Key("function2").Function({}, "print \"Ugug\"");
 	Output << "\n} end\n";
 	
-	AssertEqual(Output.str(),
+	AssertEqual(Output,
 		"x = function() return {\n"
 		"	[\"a\"] = \"a\",\n"
 		"	[\"\xE5\xAD\x90\xE4\xBE\x9B\"] = \"\xE5\xAD\x90\xE4\xBE\x9B\",\n"

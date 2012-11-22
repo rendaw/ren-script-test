@@ -6,8 +6,9 @@ NormalizeSlashes = function(Filename)
 	return string.gsub(Filename, '\\', '/')
 end
 
-CompileFlags = '-std=gnu++11 -Wall -Wextra -pedantic  -I' .. NormalizeSlashes(tup.getcwd())
-LinkFlags = '-Wall -Wextra -pedantic '
+CompileFlags = '-std=gnu++11 -Wall -pedantic ' .. tup.getconfig('CFLAGS') .. ' -I' .. NormalizeSlashes(tup.getcwd()) .. ' ' .. tup.getconfig('INCLUDEDIRECTORIES')
+LinkFlags = '-Wall -pedantic ' .. tup.getconfig('LINKDIRECTORIES')
+LinkLibraries = tup.getconfig('LINKFLAGS')
 if tup.getconfig('DEBUG') == 'true'
 then
 	CompileFlags = CompileFlags .. ' -ggdb -O0'
@@ -42,7 +43,7 @@ Rule =
 		tup.definerule{
 			inputs = Inputs,
 			outputs = {Output},
-			command = CommandPrefix .. tup.getconfig('COMPILER') .. ' ' .. LinkFlags .. ' ' .. table.concat(Inputs, ' ') .. ' -o ' .. Output .. CommandSuffix}
+			command = CommandPrefix .. tup.getconfig('COMPILER') .. ' ' .. LinkFlags .. ' ' .. table.concat(Inputs, ' ') .. ' ' .. LinkLibraries .. ' -o ' .. Output .. CommandSuffix}
 	end,
 }
 
